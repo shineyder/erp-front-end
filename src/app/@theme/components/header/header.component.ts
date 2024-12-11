@@ -59,18 +59,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.userAuthService.getUserAuthenticated()
-    .pipe(takeUntil(this.destroy$))
-    .subscribe({
-      next: (user) => {
-        this.localStorageService.set('auth_user', user)
-        this.user = user
-      },
-      error: (error) => {
-        this.localStorageService.clear()
-        /* this.router.navigate(['auth/login']); */
-      }
-    });
+    if(this.localStorageService.get('auth_app_token') != null){
+      this.userAuthService.getUserAuthenticated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          this.localStorageService.set('auth_user', user)
+          this.user = user
+        },
+        error: (error) => {
+          this.localStorageService.clear()
+          this.router.navigate(['auth/login']);
+        }
+      });
+    }else{
+      this.localStorageService.clear();
+    }
 
     this.menuService.onItemClick()
     .pipe(
