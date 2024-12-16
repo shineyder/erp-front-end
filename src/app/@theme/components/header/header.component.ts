@@ -20,7 +20,8 @@ import { Subject } from 'rxjs';
 import { AuthService } from '../../../auth/auth.service';
 import { User } from '../../../pages/home/models/user.model';
 import { StorageService } from '../../../storage.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-ngx-header',
@@ -35,7 +36,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   currentTheme = 'default';
 
   userMenu = [
-    /* { title: 'Profile' }, */
+    { title: 'Acessar Loja Virtual' },
     { title: 'Sair' }
   ];
 
@@ -55,17 +56,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly localStorageService: StorageService,
     private readonly toastrService: NbToastrService,
     private readonly router: Router,
-    ) {
+    private readonly route: ActivatedRoute
+  ) {
   }
 
   ngOnInit() {
+    let tokenFromECommerce = this.route.snapshot.queryParams['token'];
+    if(tokenFromECommerce){
+      this.localStorageService.set('auth_app_token', {value: tokenFromECommerce});
+      const urlObj = new URL(window.location.href);
+      urlObj.searchParams.delete('token');
+      window.location.href = urlObj.toString();
+    }
+
     if(this.localStorageService.get('auth_app_token') != null){
       this.userAuthService.getUserAuthenticated()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user) => {
           this.localStorageService.set('auth_user', user)
-          this.user = user
+          this.user = user;
         },
         error: (error) => {
           this.localStorageService.clear()
@@ -84,6 +94,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     .subscribe((menu: any) => {
       if(menu.item.title == 'Sair'){
         this.userAuthService.doLogout()
+      }
+
+      if(menu.item.title == 'Acessar Loja Virtual'){
+        let token = this.localStorageService.get('auth_app_token');
+        window.location.href = `${environment.baseECommerceUrl}`+'?token='+`${token.value}`;
       }
     })
   }

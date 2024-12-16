@@ -10,5 +10,6 @@
 
 export const environment = {
   baseURL: 'http://localhost:8080',
+  baseECommerceUrl: 'http://localhost:4200', //temporário, substituir por campo na empresa
   production: false,
 };
